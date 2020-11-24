@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- General -->
+    <meta http-equiv="Content-Type" content="text/html" />
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" name="viewport">
     <meta name="robots" content="noindex,nofollow">
-
+    <!-- Favicons / Design -->
+    <meta name="msapplication-TileColor" content="#fff">
+    <meta name="theme-color" content="#fff">    
+    <link rel="icon" type="image/png" href="https://icon-library.com/images/bar-chart-icon/bar-chart-icon-17.jpg">
+    <!-- Primary Meta Tags -->
+    <title>Dashboard</title>
     <!-- Icons -->
     <link href="css/fontawesome.min.css" rel="stylesheet" type="text/css">
-    <!-- <link href="vvendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> -->
     <!-- Custom font -->
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <!-- Custom styles -->
@@ -103,14 +109,29 @@
 
             <!-- Chart Area-->
             <div class="row">
-              <div class="col-12">
+              <!-- Daily Requests Chart-->
+              <div class="col-12 col-lg-6">
                 <div class="card shadow mb-4">
                   <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Usage Overview</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Daily Requests</h6>
                   </div>
                   <div class="card-body">
                     <div class="chart-area">
-                      <canvas id="usageChart"></canvas>
+                      <canvas id="dailyRequestsChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cumulative Requests Chart-->
+              <div class="col-12 col-lg-6">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Cumulative Requests</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="cumulativeRequestsChart"></canvas>
                     </div>
                   </div>
                 </div>
@@ -120,14 +141,14 @@
             <!-- Table Area -->
             <div class="row">
               <!-- Top Users Table -->
-              <div class="col-lg-6 mb-4">
+              <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card shadow mb-4">
                   <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Top Users</h6>
                   </div>
                   <div class="card-body">
-                    <div class="table-responsive" style="height: auto;">
-                      <table class="table table-bordered" id="topUsers" width="100%" cellspacing="0">
+                    <div class="table-responsive" style="height: 400px;">
+                      <table class="table table-bordered" id="topUsersTable" width="100%" cellspacing="0">
                         
                       </table>
                     </div>
@@ -136,14 +157,46 @@
               </div>
 
               <!-- Top Requests Table -->
-              <div class="col-lg-6 mb-4">
+              <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card shadow mb-4">
                   <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Top Requests</h6>
                   </div>
                   <div class="card-body">
-                    <div class="table-responsive" style="height: auto;">
-                      <table class="table table-bordered" id="topRequests" width="100%" cellspacing="0">
+                    <div class="table-responsive" style="height: 400px;">
+                      <table class="table table-bordered" id="topRequestsTable" width="100%" cellspacing="0">
+                       
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- New Users Table -->
+              <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">New Users (Last 7 Days)</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive" style="height: 400px;">
+                      <table class="table table-bordered" id="newUsersTable" width="100%" cellspacing="0">
+                       
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Requests Table -->
+              <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Requests (25)</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive" style="height: 500px;">
+                      <table class="table table-bordered" id="lastRequestsTable" width="100%" cellspacing="0">
                        
                       </table>
                     </div>
