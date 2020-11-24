@@ -9757,11 +9757,13 @@ a:focus {
 
 #wrapper {
   display: flex;
+  background-color: #f8f9fc;
+  justify-content: center;
 }
 
 #wrapper #content-wrapper {
-  background-color: #f8f9fc;
   width: 100%;
+  max-width: 1400px;
   overflow-x: hidden;
 }
 
@@ -11210,3 +11212,4 @@ footer.sticky-footer .copyright {
 body.sidebar-toggled footer.sticky-footer {
   width: 100%;
 }
+

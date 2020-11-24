@@ -419,7 +419,7 @@ function generateNewUsersTable(log, days) {
   var labels = "<tr><th>Username</th></tr>";
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
-  var newUsers = getNewUsers(log, days);
+  var newUsers = getNewUsers(log, days).reverse();
   var tbody = "<tbody>";
   for (var user in newUsers) {
     tbody += "<tr><td>" + newUsers[user] + "</td></tr>";
@@ -450,14 +450,7 @@ function generateLastRequestsTable(log, num) {
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var tbody = "<tbody>";
-  // reverse sort logs so most recent first
-  log.sort(function(a, b) {
-    var keyA = Number(a.timestamp);
-    var keyB = Number(b.timestamp);
-    if (keyA < keyB) return 1;
-    if (keyA > keyB) return -1;
-    return 0;
-  });
+  log.reverse();
   log.slice(0, num);
   for (var entry in log) {
     var datetime = new Date(log[entry]["timestamp"]);
