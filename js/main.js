@@ -1,7 +1,6 @@
 // chart setup
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
-var ctx = document.getElementById("usageChart");
 
 
 var indent = "&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -112,97 +111,6 @@ function cleanLog(adjustedLog) {
     return 0;
   });
   return cleanedLog;
-}
-function getChartData(log) {
-  var dates = [];
-  var count = [];
-  var tally = {};
-  for (var entry in log) {
-    var timestamp = log[entry]["timestamp"];
-    var datetime = new Date(timestamp); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
-    var year = datetime.getFullYear(); // 2020
-    var month = datetime.getMonth() + 1; // 4 (note zero index: Jan = 0, Dec = 11)
-    var day = datetime.getDate(); // 9
-    var date = month + "/" + day;
-    if ( !dates.includes(date) ) {
-      dates.push(date);
-      tally[date] = 1;
-    }
-    tally[date]++;
-  }
-  for (var date in dates) {
-    var key = dates[date];
-    count.push(tally[key]);
-  }
-  return [dates, count];
-}
-function generateTopUsersTable(log, num) {
-  var labels = "<tr><th>Username</th><th>Requests</th></tr>";
-  var thead = "<thead>" + labels + "</thead>";
-  var tfoot = "<tfoot>" + labels + "</tfoot>";
-  var topUsers = getMostActiveUsers(log, num);
-  var tbody = "<tbody>";
-  for (var user in topUsers) {
-    tbody += "<tr><td>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td></tr>";
-  }
-  tbody += "</tbody>";
-  var table = thead + tfoot + tbody;
-  return table;
-  // output:
-    // <thead>
-    //   <tr>
-    //     <th>Username</th>
-    //     <th>Requests</th>
-    //   </tr>
-    // </thead>
-    // <tfoot>
-    //   <tr>
-    //     <th>Username</th>
-    //     <th>Requests</th>
-    //   </tr>
-    // </tfoot>
-    // <tbody>
-    //   <tr>
-    //     <td>hanniabu</td>
-    //     <td>6</td>
-    //   </tr>
-    // </tbody>
-}
-function generateTopRequestsTable(log, num) {
-  var labels = "<tr><th>Request</th><th>Count</th></tr>";
-  var thead = "<thead>" + labels + "</thead>";
-  var tfoot = "<tfoot>" + labels + "</tfoot>";
-  var topRequests = getMostCommonRequests(log, num);
-  var tbody = "<tbody>";
-  for (var request in topRequests) {
-    tbody += "<tr><td>" + topRequests[request]["request"] + "</td><td>" + topRequests[request]["frequency"] + "</td></tr>";
-  }
-  tbody += "</tbody>";
-  var table = thead + tfoot + tbody;
-  return table;
-  // output:
-    // <thead>
-    //   <tr>
-    //     <th>Request</th>
-    //     <th>Count</th>
-    //   </tr>
-    // </thead>
-    // <tfoot>
-    //   <tr>
-    //     <th>Request</th>
-    //     <th>Count</th>
-    //   </tr>
-    // </tfoot>
-    // <tbody>
-    //   <tr>
-    //     <td>hanniabu</td>
-    //     <td>6</td>
-    //   </tr>
-    // </tbody>
-}
-function showSummary(log) {
-  var summary = generateSummary(log);
-  document.body.innerHTML = summary;
 }
 function getTotalRequests(log) {
   return log.length;
@@ -410,28 +318,339 @@ function getAveRequestsPerDay(log) {
   // output:
   // int
 }
+function getNewUsers(log, days) {
+  var d = new Date(); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
+  d.setDate(d.getDate() - days); // Set it to N days ago
+  d.setHours(0, 0, 0); // Zero the hours
+  d.setMilliseconds(0); // Zero the milliseconds
+  var cutoff = d.getTime(); // Unix timestamp in milliseconds
+  var outOfRange = []; // Requests before the cutoff time
+  var inRange = []; // Requests after the cutoff time
+  for (var entry in log) {
+    var timestamp = log[entry]["timestamp"];
+    if (timestamp < cutoff) {
+      outOfRange.push(log[entry]);
+    } else {
+      inRange.push(log[entry]);
+    }
+  }
+  var outofRangeUsers = getUniqueUsers(outOfRange);
+  var inRangeUsers = getUniqueUsers(inRange);
+  var newUsers = [];
+  for (var user in inRangeUsers) {
+    var username = inRangeUsers[user];
+    if ( !outofRangeUsers.includes(username) ) {
+      newUsers.push(username);
+    }
+  }
+  return newUsers;
+  // output:
+  // [ "usernameA", "usernameB", "usernameN" ]
+}
+
+function generateTopUsersTable(log, num) {
+  var num = (num === undefined) ? getTotalUsers(log) : num;
+  var labels = "<tr><th>Username</th><th>Requests</th></tr>";
+  var thead = "<thead>" + labels + "</thead>";
+  var tfoot = "<tfoot>" + labels + "</tfoot>";
+  var topUsers = getMostActiveUsers(log, num);
+  var tbody = "<tbody>";
+  for (var user in topUsers) {
+    tbody += "<tr><td>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td></tr>";
+  }
+  tbody += "</tbody>";
+  var table = thead + tfoot + tbody;
+  return table;
+  // output:
+    // <thead>
+    //   <tr>
+    //     <th>Username</th>
+    //     <th>Requests</th>
+    //   </tr>
+    // </thead>
+    // <tfoot>
+    //   <tr>
+    //     <th>Username</th>
+    //     <th>Requests</th>
+    //   </tr>
+    // </tfoot>
+    // <tbody>
+    //   <tr>
+    //     <td>hanniabu</td>
+    //     <td>6</td>
+    //   </tr>
+    // </tbody>
+}
+function generateTopRequestsTable(log, num) {
+  var num = (num === undefined) ? getUniqueRequests(log).length : num;
+  var labels = "<tr><th>Request</th><th>Count</th></tr>";
+  var thead = "<thead>" + labels + "</thead>";
+  var tfoot = "<tfoot>" + labels + "</tfoot>";
+  var topRequests = getMostCommonRequests(log, num);
+  var tbody = "<tbody>";
+  for (var request in topRequests) {
+    tbody += "<tr><td>" + topRequests[request]["request"] + "</td><td>" + topRequests[request]["frequency"] + "</td></tr>";
+  }
+  tbody += "</tbody>";
+  var table = thead + tfoot + tbody;
+  return table;
+  // output:
+    // <thead>
+    //   <tr>
+    //     <th>Request</th>
+    //     <th>Count</th>
+    //   </tr>
+    // </thead>
+    // <tfoot>
+    //   <tr>
+    //     <th>Request</th>
+    //     <th>Count</th>
+    //   </tr>
+    // </tfoot>
+    // <tbody>
+    //   <tr>
+    //     <td>hanniabu</td>
+    //     <td>6</td>
+    //   </tr>
+    // </tbody>
+}
+function generateNewUsersTable(log, days) {
+  var num = (num === undefined) ? getUniqueRequests(log).length : num;
+  var labels = "<tr><th>Username</th></tr>";
+  var thead = "<thead>" + labels + "</thead>";
+  var tfoot = "<tfoot>" + labels + "</tfoot>";
+  var newUsers = getNewUsers(log, days);
+  var tbody = "<tbody>";
+  for (var user in newUsers) {
+    tbody += "<tr><td>" + newUsers[user] + "</td></tr>";
+  }
+  tbody += "</tbody>";
+  var table = thead + tfoot + tbody;
+  return table;
+  // output:
+    // <thead>
+    //   <tr>
+    //     <th>Username</th>
+    //   </tr>
+    // </thead>
+    // <tfoot>
+    //   <tr>
+    //     <th>Username</th>
+    //   </tr>
+    // </tfoot>
+    // <tbody>
+    //   <tr>
+    //     <td>hanniabu</td>
+    //   </tr>
+    // </tbody>
+}
+function generateLastRequestsTable(log, num) {
+  var num = (num === undefined) ? 25 : num;
+  var labels = "<tr><th>Username</th><th>Request</th><th>Date</th></tr>";
+  var thead = "<thead>" + labels + "</thead>";
+  var tfoot = "<tfoot>" + labels + "</tfoot>";
+  var tbody = "<tbody>";
+  // reverse sort logs so most recent first
+  log.sort(function(a, b) {
+    var keyA = Number(a.timestamp);
+    var keyB = Number(b.timestamp);
+    if (keyA < keyB) return 1;
+    if (keyA > keyB) return -1;
+    return 0;
+  });
+  log.slice(0, num);
+  for (var entry in log) {
+    var datetime = new Date(log[entry]["timestamp"]);
+    var date = (datetime.getMonth() + 1) + "/" + datetime.getDate() + "/" + datetime.getFullYear();
+    console.log("timestamp: " + log[entry]["timestamp"] + ", datetime: " + datetime);
+    tbody += "<tr><td>" + log[entry]["username"] + "</td><td>" + log[entry]["query"] + "</td><td>" + date + "</td></tr>";
+  }
+  tbody += "</tbody>";
+  var table = thead + tfoot + tbody;
+  return table;
+  // output:
+    // <thead>
+    //   <tr>
+    //     <th>Username</th>
+    //     <th>Request</th>
+    //     <th>Date</th>
+    //   </tr>
+    // </thead>
+    // <tfoot>
+    //   <tr>
+    //     <th>Username</th>
+    //     <th>Request</th>
+    //     <th>Date</th>
+    //   </tr>
+    // </tfoot>
+    // <tbody>
+    //   <tr>
+    //     <td>hanniabu</td>
+    //     <td>eth</td>
+    //     <td>11/23/20</td>
+    //   </tr>
+    // </tbody>
+}
+function getDailyRequestData(log) {
+  var dates = [];
+  var count = [];
+  var tally = {};
+  for (var entry in log) {
+    var timestamp = log[entry]["timestamp"];
+    var datetime = new Date(timestamp); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
+    var year = datetime.getFullYear(); // 2020
+    var month = datetime.getMonth() + 1; // 4 (note zero index: Jan = 0, Dec = 11)
+    var day = datetime.getDate(); // 9
+    var date = month + "/" + day;
+    if ( !dates.includes(date) ) {
+      dates.push(date);
+      tally[date] = 1;
+    }
+    tally[date]++;
+  }
+  for (var date in dates) {
+    var key = dates[date];
+    count.push(tally[key]);
+  }
+  return [dates, count];
+}
+function getCumulativeRequestData(log) {
+  var data = getDailyRequestData(log);
+  var dates = data[0];
+  var count = data[1];
+  var tally = 0;
+  for (var num in count) {
+    tally += count[num];
+    count[num] = tally;
+  }
+  return [dates, count];
+}
+
 function loadInfo(log) {
   var totalRequests = getTotalRequests(log);
   var totalUsers = getTotalUsers(log);
   var aveRequestsPerUser = getAveRequestsPerUser(log);
   var aveRequestsPerDay = getAveRequestsPerDay(log);
-  var chartData = getChartData(log);
-  var topUsersTable = generateTopUsersTable(log, 10);
-  var topRequestsTable = generateTopRequestsTable(log, 10);
+  var dailyRequestData = getDailyRequestData(log);
+  var cumulativeRequestData = getCumulativeRequestData(log);
+  var topUsersTable = generateTopUsersTable(log);
+  var topRequestsTable = generateTopRequestsTable(log);
+  var newUsersTable = generateNewUsersTable(log, 7)
+  var lastRequestsTable = generateLastRequestsTable(log, 25)
   document.getElementById("uniqueUsers").innerHTML = totalUsers;
   document.getElementById("totalRequests").innerHTML = totalRequests;
   document.getElementById("aveRequestsPerUser").innerHTML = aveRequestsPerUser;
   document.getElementById("aveRequestsPerDay").innerHTML = aveRequestsPerDay;
-  document.getElementById("topUsers").innerHTML = topUsersTable;
-  document.getElementById("topRequests").innerHTML = topRequestsTable;
-  loadChart(chartData);
+  document.getElementById("topUsersTable").innerHTML = topUsersTable;
+  document.getElementById("topRequestsTable").innerHTML = topRequestsTable;
+  document.getElementById("newUsersTable").innerHTML = newUsersTable;
+  document.getElementById("lastRequestsTable").innerHTML = lastRequestsTable;
+  loadDailyRequestChart(dailyRequestData);
+  loadCumulativeRequestChart(cumulativeRequestData);
 }
-function loadChart(chartData) {
+function loadDailyRequestChart(data) {
   // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
   // var count = [29, 9, 39, 19, 45, 23, 41, 46, 39, 8, 3, 28, 7, 18];
-  var dates = chartData[0];
-  var count = chartData[1];
-  var usageChart = new Chart(ctx, {
+  var dates = data[0];
+  var count = data[1];
+  var ctx = document.getElementById("dailyRequestsChart");
+  var dailyRequestsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      // labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: dates,
+      datasets: [{
+        label: "Requests",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: [0, 10000, 5000, 15000, 10000, 20000, 15000, 25000, 20000, 30000, 25000, 40000],
+        data: count,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+            // Include a dollar sign in the ticks
+            callback: function(value, index, values) {
+              return value;
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function(tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel;
+          }
+        }
+      }
+    }
+  });
+}
+function loadCumulativeRequestChart(data) {
+  // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
+  // var count = [29, 9, 39, 19, 45, 23, 41, 46, 39, 8, 3, 28, 7, 18];
+  var dates = data[0];
+  var count = data[1];
+  var ctx = document.getElementById("cumulativeRequestsChart");
+  var dailyRequestsChart = new Chart(ctx, {
     type: 'line',
     data: {
       // labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -557,18 +776,20 @@ function generateSummary(log) {
   var allRequests = getReadableLog(log);
   var aveRequestsPerDay = getAveRequestsPerDay(log);
   var summary = `
-<strong>${date}</strong>
-<br>Total Requests: ${totalRequests}
-<br>Unique Users: ${totalUsers}
-<br>Ave. Searches Per User: ${aveRequestsPerUser}
-<br>Ave. Searches Per Day: ${aveRequestsPerDay}
-<br>Total Searches Per User: ${totalRequestsPerUser}
-<br>Most Common Requests: ${mostCommonRequests}
-<br><br>All Requests: ${allRequests}
+  <strong>${date}</strong>
+  <br>Total Requests: ${totalRequests}
+  <br>Unique Users: ${totalUsers}
+  <br>Ave. Searches Per User: ${aveRequestsPerUser}
+  <br>Ave. Searches Per Day: ${aveRequestsPerDay}
+  <br>Total Searches Per User: ${totalRequestsPerUser}
+  <br>Most Common Requests: ${mostCommonRequests}
+  <br><br>All Requests: ${allRequests}
   `;
-// <br>Most Active Users: ${mostActiveUsers}
+  // <br>Most Active Users: ${mostActiveUsers}
   // percent unique users in last week
   return summary;
 }
-
-
+function showSummary(log) {
+  var summary = generateSummary(log);
+  document.body.innerHTML = summary;
+}
