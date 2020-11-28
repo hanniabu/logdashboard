@@ -30,10 +30,7 @@ function getLogAjax() {
     xhr.addEventListener("timeout", function(e) {
       alert(alertMsg);
     });
-    // var url = "http://api.cryptocallback.com/shrewdly-ferocity-trough";
-    // var url = "https://45.79.148.58:8443/shrewdly-ferocity-trough";
     var url = "https://45.79.148.58/shrewdly-ferocity-trough";
-    // var url = "http://45.79.148.58:3000/shrewdly-ferocity-trough";
     xhr.open('GET', url);
     xhr.send();
     xhr.onreadystatechange = function(){
@@ -78,11 +75,12 @@ function cleanLog(adjustedLog) {
   var users = getUniqueUsers(adjustedLog);
   var bufferTime = 4000; // milliseconds
   var times = [];
+  var requestCharLimit = 35;
   for (var user in users) {
     var requests = getUserRequests(adjustedLog, users[user]);
     var r0 = requests[0];
     for (var request in requests) {
-      if (r0 == requests[0] && requests.length == 1) {
+      if (r0 == requests[0] && requests.length == 1 && r0["query"].length < requestCharLimit) {
         cleanedLog.push(r0);
       } else if (r0 != undefined && r0 != requests[request]) {
         var rf = requests[request];
@@ -90,11 +88,11 @@ function cleanLog(adjustedLog) {
         var includes = rf["query"].startsWith(r0["query"]);
         var repeat = includes && r0["query"] != "";
         // if not a repeat request, save the previous request
-        if (!repeat) {
+        if (!repeat && r0["query"].length < requestCharLimit) {
           cleanedLog.push(r0);
         }
         // if last request, save, otherwise set rf to r0 to reset
-        if (request == requests.length - 1) {
+        if (request == (requests.length - 1) && rf["query"].length < requestCharLimit) {
           cleanedLog.push(rf);
         } else {
           r0 = rf;
@@ -444,19 +442,23 @@ function generateNewUsersTable(log, days) {
     //   </tr>
     // </tbody>
 }
-function generateLastRequestsTable(log, num) {
+function generateRecentRequestsTable(log, num) {
   var num = (num === undefined) ? 25 : num;
-  var labels = "<tr><th>Username</th><th>Request</th><th>Date</th></tr>";
+  var labels = "<tr><th>Datetime</th><th>Username</th><th>Request</th></tr>";
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var tbody = "<tbody>";
   log.reverse();
   log.slice(0, num);
   for (var entry in log) {
-    var datetime = new Date(log[entry]["timestamp"]);
-    var date = (datetime.getMonth() + 1) + "/" + datetime.getDate() + "/" + datetime.getFullYear();
-    console.log("timestamp: " + log[entry]["timestamp"] + ", datetime: " + datetime);
-    tbody += "<tr><td>" + log[entry]["username"] + "</td><td>" + log[entry]["query"] + "</td><td>" + date + "</td></tr>";
+    var d = new Date(log[entry]["timestamp"]); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    var year = d.getFullYear().toString().substr(-2);
+    var hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+    var minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    var datetime = month + "/" + day + "/" + year + " " + hours + ":" + minutes;
+    tbody += "<tr><td>" + datetime + "</td><td>" + log[entry]["username"] + "</td><td>" + log[entry]["query"] + "</td></tr>";
   }
   tbody += "</tbody>";
   var table = thead + tfoot + tbody;
@@ -480,7 +482,7 @@ function generateLastRequestsTable(log, num) {
     //   <tr>
     //     <td>hanniabu</td>
     //     <td>eth</td>
-    //     <td>11/23/20</td>
+    //     <td>11/23/20 13:40</td>
     //   </tr>
     // </tbody>
 }
@@ -529,7 +531,7 @@ function loadInfo(log) {
   var topUsersTable = generateTopUsersTable(log);
   var topRequestsTable = generateTopRequestsTable(log);
   var newUsersTable = generateNewUsersTable(log, 7)
-  var lastRequestsTable = generateLastRequestsTable(log, 25)
+  var recentRequestsTable = generateRecentRequestsTable(log, 25)
   document.getElementById("uniqueUsers").innerHTML = totalUsers;
   document.getElementById("totalRequests").innerHTML = totalRequests;
   document.getElementById("aveRequestsPerUser").innerHTML = aveRequestsPerUser;
@@ -537,7 +539,7 @@ function loadInfo(log) {
   document.getElementById("topUsersTable").innerHTML = topUsersTable;
   document.getElementById("topRequestsTable").innerHTML = topRequestsTable;
   document.getElementById("newUsersTable").innerHTML = newUsersTable;
-  document.getElementById("lastRequestsTable").innerHTML = lastRequestsTable;
+  document.getElementById("recentRequestsTable").innerHTML = recentRequestsTable;
   loadDailyRequestChart(dailyRequestData);
   loadCumulativeRequestChart(cumulativeRequestData);
 }
