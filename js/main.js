@@ -354,7 +354,7 @@ function generateTopUsersTable(log, num) {
   var topUsers = getMostActiveUsers(log, num);
   var tbody = "<tbody>";
   for (var user in topUsers) {
-    tbody += "<tr><td>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td></tr>";
+    tbody += "<tr><td id='" + topUsers[user]["username"] + "'>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td></tr>";
   }
   tbody += "</tbody>";
   var table = thead + tfoot + tbody;
@@ -414,13 +414,17 @@ function generateTopRequestsTable(log, num) {
 }
 function generateNewUsersTable(log, days) {
   var num = (num === undefined) ? getUniqueRequests(log).length : num;
-  var labels = "<tr><th>Username</th></tr>";
+  var labels = "<tr><th>Username</th><th>Telegram</th></tr>";
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var newUsers = getNewUsers(log, days).reverse();
   var tbody = "<tbody>";
   for (var user in newUsers) {
-    tbody += "<tr><td>" + newUsers[user] + "</td></tr>";
+    // links to top users table to view request count
+    var username = "<td><a href='#" + newUsers[user] + "'>" + newUsers[user] + "</a></td>";
+    // links to telegram dm to view chats in common
+    var link = "<td><a href='https://t.me/" + newUsers[user] + "'>Link</a></td>";
+    tbody += "<tr>" + username + link + "</tr>";
   }
   tbody += "</tbody>";
   var table = thead + tfoot + tbody;
