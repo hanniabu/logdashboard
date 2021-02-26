@@ -228,7 +228,7 @@ function getMostActiveUsersSummary(log, num) {
 function getUniqueRequests(log) {
   var requests = [];
   for (var entry in log) {
-    var request = log[entry]["query"];
+    var request = log[entry]["query"].toLowerCase();
     if ( !requests.includes(request) ) {
       requests.push(request);
     }
@@ -240,7 +240,7 @@ function getUniqueRequests(log) {
 function getRequestFrequency(log, request) {
   var requestFrequency = 0;
   for (var entry in log) {
-    if ( request == log[entry]["query"] ) {
+    if ( request.toLowerCase() == log[entry]["query"].toLowerCase() ) {
       requestFrequency++;
     }
   }
