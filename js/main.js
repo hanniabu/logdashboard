@@ -20,7 +20,7 @@ var currentEpoch = Date.now(); // milliseconds
 
 
 // getLogAjax().then(processLog).then(showSummary);
-getLogAjax().then(processLog).then(loadInfo);
+getLogAjax().then(processLog).then(loadDashboard);
 function getLogAjax() {
   var promise = new Promise(function(resolve, reject){
     var alertMsg = "Failed to load log, refresh page";
@@ -47,18 +47,21 @@ function getLogAjax() {
   return promise;
 }
 function processLog(rawLog) {
-  var jsonLog = convertToJson(rawLog);
-  var adjustedLog = addUsernames(jsonLog);
-  var cleanedLog = cleanLog(adjustedLog);
+  // var jsonLog = convertToJson(rawLog);
+  // var adjustedLog = addUsernames(jsonLog);
+  // var cleanedLog = trimRequests(adjustedLog);
+  var cleanedLog = convertToJson(rawLog);
+  cleanedLog = addUsernames(cleanedLog);
+  cleanedLog = trimRequests(cleanedLog);
   return cleanedLog;
 }
 function convertToJson(rawLog) {
   // convert string log to json
   return JSON.parse("[" + rawLog.split("}{").join("},{") + "]");
 }
-function addUsernames(jsonLog) {
+function addUsernames(log) {
   // add username if not present, suffixed with ***
-  var adjustedLog = jsonLog;
+  var adjustedLog = log;
   for (var user in adjustedLog) {
     var username = adjustedLog[user]["username"];
     if (username === undefined) {
@@ -69,15 +72,15 @@ function addUsernames(jsonLog) {
   }
   return adjustedLog;
 }
-function cleanLog(adjustedLog) {
+function trimRequests(log) {
   // remove in-progress searches
   var cleanedLog = [];
-  var users = getUniqueUsers(adjustedLog);
+  var users = getUniqueUsers(log);
   var bufferTime = 4000; // milliseconds
   var times = [];
   var requestCharLimit = 35;
   for (var user in users) {
-    var requests = getUserRequests(adjustedLog, users[user]);
+    var requests = getUserRequests(log, users[user]);
     var r0 = requests[0];
     for (var request in requests) {
       if (r0 == requests[0] && requests.length == 1 && r0["query"].length < requestCharLimit) {
@@ -525,7 +528,7 @@ function getCumulativeRequestData(log) {
   return [dates, count];
 }
 
-function loadInfo(log) {
+function loadDashboard(log) {
   var totalRequests = getTotalRequests(log);
   var totalUsers = getTotalUsers(log);
   var aveRequestsPerUser = getAveRequestsPerUser(log);
