@@ -47,11 +47,9 @@ function getLogAjax() {
   return promise;
 }
 function processLog(rawLog) {
-  // var jsonLog = convertToJson(rawLog);
-  // var adjustedLog = addUsernames(jsonLog);
-  // var cleanedLog = trimRequests(adjustedLog);
   var cleanedLog = convertToJson(rawLog);
   cleanedLog = addUsernames(cleanedLog);
+  cleanedLog = omitUsers(cleanedLog);
   cleanedLog = trimRequests(cleanedLog);
   return cleanedLog;
 }
@@ -71,6 +69,16 @@ function addUsernames(log) {
     } 
   }
   return adjustedLog;
+}
+function omitUsers(log) {
+  var usersToRemove = ["hanniabu", "rudster", "svencillia", "jasonlexx"];
+  var cleanedLog = [];
+  for (var entry in log) {
+    if (!usersToRemove.includes(log[entry]["username"])) {
+      cleanedLog.push(log[entry]);
+    } 
+  }
+  return cleanedLog;
 }
 function trimRequests(log) {
   // remove in-progress searches
