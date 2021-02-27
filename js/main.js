@@ -5,6 +5,10 @@ Chart.defaults.global.defaultFontColor = '#858796';
 
 var indent = "&nbsp;&nbsp;&nbsp;&nbsp;";
 var currentEpoch = Date.now(); // milliseconds
+var settingsChanged = 0;
+var rawLog;
+var savedSettings = JSON.parse(localStorage.getItem('settings'));
+var settings = savedSettings || {};
 // log format
   // [
   //   {
@@ -19,7 +23,29 @@ var currentEpoch = Date.now(); // milliseconds
   // ]
 
 
-// getLogAjax().then(processLog).then(showSummary);
+function loadSettings() {
+  Object.entries(settings).forEach((key, value) => {
+    var id = String(key[0]);
+    document.getElementById(id).checked = settings[id];
+  });
+}
+function saveSetting(el) {
+  var setting = el.id;
+  var value = el.checked;
+  if (settings[setting] == undefined || settings[setting] != value) {
+    settingsChanged = 1;
+  }
+  settings[setting] = value;
+  localStorage.setItem('settings', JSON.stringify(settings));
+}
+function reloadData(){
+  if (settingsChanged) {
+    var cleanedLog = processLog(rawLog);
+    loadDashboard(cleanedLog);
+  }
+}
+
+loadSettings();
 getLogAjax().then(processLog).then(loadDashboard);
 function getLogAjax() {
   var promise = new Promise(function(resolve, reject){
@@ -37,7 +63,8 @@ function getLogAjax() {
       if (xhr.readyState === 4) {
         if (xhr.status === 200){
           var response = this.responseText;
-          resolve(response);
+          rawLog = convertToJson(response);
+          resolve(rawLog);
         } else {
           alert(alertMsg);
         }
@@ -46,16 +73,16 @@ function getLogAjax() {
   });
   return promise;
 }
-function processLog(rawLog) {
-  var cleanedLog = convertToJson(rawLog);
-  cleanedLog = addUsernames(cleanedLog);
-  cleanedLog = omitUsers(cleanedLog);
-  cleanedLog = trimRequests(cleanedLog);
+function processLog(log) {
+  var cleanedLog = log
+  cleanedLog = addUsernames(log);
+  cleanedLog = settings['settingOmitUsers'] ? omitUsers(cleanedLog) : cleanedLog;
+  cleanedLog = settings['settingTrimRequests'] ? trimRequests(cleanedLog) : cleanedLog;
   return cleanedLog;
 }
-function convertToJson(rawLog) {
+function convertToJson(textLog) {
   // convert string log to json
-  return JSON.parse("[" + rawLog.split("}{").join("},{") + "]");
+  return JSON.parse("[" + textLog.split("}{").join("},{") + "]");
 }
 function addUsernames(log) {
   // add username if not present, suffixed with ***
