@@ -33,18 +33,56 @@
             <!-- Page Heading -->
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
               <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-              <a href="https://45.79.148.58/shrewdly-ferocity-trough" class="d-sm-inline-block btn btn-sm btn-primary shadow-sm mt-3 mt-sm-0"><i class="fas fa-file fa-sm text-white-50 mr-1"></i> View Raw Logs</a>
+              <div>
+                <a class="d-sm-inline-block btn btn-sm btn-outline-primary shadow-sm mt-3 mt-sm-0" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog fa-sm mr-1"></i> Settings</a>
+                <a href="https://45.79.148.58/shrewdly-ferocity-trough" class="d-sm-inline-block btn btn-sm btn-primary shadow-sm mt-3 mt-sm-0"><i class="fas fa-file fa-sm text-white-50 mr-1"></i> View Raw Logs</a>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"  onclick="reloadData()">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="container-fluid">
+                      <div class="row">
+                        <div class="col-12 my-1 custom-control custom-switch">
+                          <input type="checkbox" class="make-switch custom-control-input" id="settingOmitUsers" onclick="saveSetting(this)" checked>
+                          <label class="custom-control-label" for="settingOmitUsers">Remove our accounts/requests</label>
+                        </div>
+                        <div class="col-12 my-1 custom-control custom-switch">
+                          <input type="checkbox" class="make-switch custom-control-input" id="settingTrimRequests" onclick="saveSetting(this)" checked>
+                          <label class="custom-control-label" for="settingTrimRequests">Remove in-progress requests</label>
+                        </div>
+                        <div class="col-12 my-1 custom-control custom-switch">
+                          <input type="checkbox" class="make-switch custom-control-input" id="settingRemoveSingleUsers" onclick="saveSetting(this)">
+                          <label class="custom-control-label" for="settingRemoveSingleUsers">Remove one-time users</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="reloadData()">Close</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Stats Row -->
             <div class="row">
-
+              <!-- Unique Users -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-primary shadow h-100 py-2">
                   <div class="card-body">
                     <div class="row no-gutters align-items-center">
                       <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Unique Users</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Unique Users (1D/7D/30D/All)</div>
                         <div id="uniqueUsers" class="h5 mb-0 font-weight-bold text-gray-800"></div>
                       </div>
                       <div class="col-auto">
@@ -54,7 +92,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Total Requests -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-success shadow h-100 py-2">
                   <div class="card-body">
@@ -70,7 +108,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Ave. Requests Per User -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-info shadow h-100 py-2">
                   <div class="card-body">
@@ -90,7 +128,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Ave. Requests Per Day -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-warning shadow h-100 py-2">
                   <div class="card-body">
@@ -110,6 +148,34 @@
 
             <!-- Chart Area-->
             <div class="row">
+              <!-- Daily Unique Users Chart-->
+              <div class="col-12 col-lg-6">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Daily Unique Users</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="dailyUniqueUsersChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monthly Unique Users Chart-->
+              <div class="col-12 col-lg-6">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Unique Users</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="monthlyUniqueUsersChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Daily Requests Chart-->
               <div class="col-12 col-lg-6">
                 <div class="card shadow mb-4">
