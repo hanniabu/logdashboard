@@ -79,8 +79,6 @@ function processLog(log) {
   cleanedLog = settings['settingOmitUsers'] ? omitUsers(cleanedLog) : cleanedLog;
   cleanedLog = settings['settingRemoveSingleUsers'] ? removeSingleUsers(cleanedLog) : cleanedLog;
   cleanedLog = settings['settingTrimRequests'] ? trimRequests(cleanedLog) : cleanedLog;
-  getUniqueUsersDay(cleanedLog);
-  getUniqueUsersWeek(cleanedLog);
   return cleanedLog;
 }
 function convertToJson(textLog) {
@@ -483,13 +481,17 @@ function generateTopUsersTable(log, num) {
 }
 function generateTopRequestsTable(log, num) {
   var num = (num === undefined) ? getUniqueRequests(log).length : num;
-  var labels = "<tr><th>Request</th><th>Count</th></tr>";
+  var labels = "<tr><th>Request</th><th>Count</th><th>Percent</th></tr>";
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var topRequests = getMostCommonRequests(log, num);
+  var totalRequests = getTotalRequests(log);
   var tbody = "<tbody>";
   for (var request in topRequests) {
-    tbody += "<tr><td>" + topRequests[request]["request"] + "</td><td>" + topRequests[request]["frequency"] + "</td></tr>";
+    var query = topRequests[request]["request"];
+    var count = topRequests[request]["frequency"];
+    var percent = Math.round((count/totalRequests)*10000)/100 + "%";
+    tbody += "<tr><td>" + query + "</td><td>" + count  + "</td><td>" + percent + "</td></tr>";
   }
   tbody += "</tbody>";
   var table = thead + tfoot + tbody;
@@ -499,18 +501,21 @@ function generateTopRequestsTable(log, num) {
     //   <tr>
     //     <th>Request</th>
     //     <th>Count</th>
+    //     <th>Percent</th>
     //   </tr>
     // </thead>
     // <tfoot>
     //   <tr>
     //     <th>Request</th>
     //     <th>Count</th>
+    //     <th>Percent</th>
     //   </tr>
     // </tfoot>
     // <tbody>
     //   <tr>
     //     <td>hanniabu</td>
     //     <td>6</td>
+    //     <td>0.06%</td>
     //   </tr>
     // </tbody>
 }
