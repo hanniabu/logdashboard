@@ -54,7 +54,7 @@
                       <div class="row">
                         <div class="col-12 my-1 custom-control custom-switch">
                           <input type="checkbox" class="make-switch custom-control-input" id="settingOmitUsers" onclick="saveSetting(this)" checked>
-                          <label class="custom-control-label" for="settingOmitUsers">Remove our requests</label>
+                          <label class="custom-control-label" for="settingOmitUsers">Remove our accounts/requests</label>
                         </div>
                         <div class="col-12 my-1 custom-control custom-switch">
                           <input type="checkbox" class="make-switch custom-control-input" id="settingTrimRequests" onclick="saveSetting(this)" checked>
@@ -76,13 +76,13 @@
 
             <!-- Stats Row -->
             <div class="row">
-
+              <!-- Unique Users -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-primary shadow h-100 py-2">
                   <div class="card-body">
                     <div class="row no-gutters align-items-center">
                       <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Unique Users</div>
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Unique Users (1D/7D/30D/All)</div>
                         <div id="uniqueUsers" class="h5 mb-0 font-weight-bold text-gray-800"></div>
                       </div>
                       <div class="col-auto">
@@ -92,7 +92,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Total Requests -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-success shadow h-100 py-2">
                   <div class="card-body">
@@ -108,7 +108,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Ave. Requests Per User -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-info shadow h-100 py-2">
                   <div class="card-body">
@@ -128,7 +128,7 @@
                   </div>
                 </div>
               </div>
-
+              <!-- Ave. Requests Per Day -->
               <div class="col-xl-3 col-md-6 mb-4">
                 <div class="card border-left-warning shadow h-100 py-2">
                   <div class="card-body">
@@ -148,6 +148,34 @@
 
             <!-- Chart Area-->
             <div class="row">
+              <!-- Daily Unique Users Chart-->
+              <div class="col-12 col-lg-6">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Daily Unique Users</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="dailyUniqueUsersChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monthly Unique Users Chart-->
+              <div class="col-12 col-lg-6">
+                <div class="card shadow mb-4">
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Unique Users</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="monthlyUniqueUsersChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Daily Requests Chart-->
               <div class="col-12 col-lg-6">
                 <div class="card shadow mb-4">

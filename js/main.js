@@ -79,6 +79,8 @@ function processLog(log) {
   cleanedLog = settings['settingOmitUsers'] ? omitUsers(cleanedLog) : cleanedLog;
   cleanedLog = settings['settingRemoveSingleUsers'] ? removeSingleUsers(cleanedLog) : cleanedLog;
   cleanedLog = settings['settingTrimRequests'] ? trimRequests(cleanedLog) : cleanedLog;
+  getUniqueUsersDay(cleanedLog);
+  getUniqueUsersWeek(cleanedLog);
   return cleanedLog;
 }
 function convertToJson(textLog) {
@@ -178,6 +180,51 @@ function getUniqueUsers(log) {
       users.push(username);
     }
   }
+  return users;
+  // output:
+  // [ "usernameA", "usernameB", "usernameN" ]
+}
+function getUniqueUsersDay(log) {
+  var timeCutoff = currentEpoch - (86400000)
+  var users = [];
+  for (var entry in log) {
+    var username = log[entry]["username"];
+    var timestamp = log[entry]["timestamp"];
+    if ( timestamp > timeCutoff && !users.includes(username) ) {
+      users.push(username);
+    }
+  }
+  console.log(users.length);
+  return users;
+  // output:
+  // [ "usernameA", "usernameB", "usernameN" ]
+}
+function getUniqueUsersWeek(log) {
+ var timeCutoff = currentEpoch - (86400000*7)
+  var users = [];
+  for (var entry in log) {
+    var username = log[entry]["username"];
+    var timestamp = log[entry]["timestamp"];
+    if ( timestamp > timeCutoff && !users.includes(username) ) {
+      users.push(username);
+    }
+  }
+  console.log(users.length);
+  return users;
+  // output:
+  // [ "usernameA", "usernameB", "usernameN" ]
+}
+function getUniqueUsersMonth(log) {
+ var timeCutoff = currentEpoch - (86400000*30)
+  var users = [];
+  for (var entry in log) {
+    var username = log[entry]["username"];
+    var timestamp = log[entry]["timestamp"];
+    if ( timestamp > timeCutoff && !users.includes(username) ) {
+      users.push(username);
+    }
+  }
+  console.log(users.length);
   return users;
   // output:
   // [ "usernameA", "usernameB", "usernameN" ]
@@ -545,23 +592,83 @@ function generateRecentRequestsTable(log, num) {
     //   </tr>
     // </tbody>
 }
+function getDailyUniqueUsersData(log) {
+  var dates = []; // array of all dates with requests
+  var count = []; // array with user counts for each day
+  var tally = {}; // { date1: [users], dateN: [users] }
+  for (var entry in log) {
+    var username = log[entry]["username"];
+    var timestamp = log[entry]["timestamp"];
+    var datetime = new Date(timestamp); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
+    var year = datetime.getFullYear().toString().substr(-2); // 21
+    var month = datetime.getMonth() + 1; // 4 (note zero index: Jan = 0, Dec = 11)
+    var day = datetime.getDate(); // 9
+    var date = month + "/" + day + "/" + year;
+    // create array (date) of all dates with requests
+    // create object (tally) of user count each day
+    if ( !dates.includes(date) ) {
+      dates.push(date);
+      tally[date] = [username];
+    } else if ( !tally[date].includes(username) ) {
+      tally[date].push(username);
+    }
+  }
+  // create array (count) of users per day
+  for (var date in dates) {
+    var key = dates[date];
+    count.push(tally[key].length);
+  }
+  return [dates, count];
+}
+function getMonthlyUniqueUsersData(log) {
+  var dates = []; // array of all dates with requests
+  var count = []; // array with user counts for each day
+  var tally = {}; // { date1: [users], dateN: [users] }
+  for (var entry in log) {
+    var username = log[entry]["username"];
+    var timestamp = log[entry]["timestamp"];
+    var datetime = new Date(timestamp); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
+    var year = datetime.getFullYear().toString().substr(-2); // 21
+    var month = datetime.getMonth() + 1; // 4 (note zero index: Jan = 0, Dec = 11)
+    var day = datetime.getDate(); // 9
+    var date = month + "/" + year;
+    // create array (date) of all dates with requests
+    // create object (tally) of user count each day
+    if ( !dates.includes(date) ) {
+      dates.push(date);
+      tally[date] = [username];
+    } else if ( !tally[date].includes(username) ) {
+      tally[date].push(username);
+    }
+  }
+  // create array (count) of users per day
+  for (var date in dates) {
+    var key = dates[date];
+    count.push(tally[key].length);
+  }
+  return [dates, count];
+}
 function getDailyRequestData(log) {
-  var dates = [];
-  var count = [];
-  var tally = {};
+  var dates = []; // array of all dates with requests
+  var count = []; // array with requst counts for each day
+  var tally = {}; // { date1: reqCnt1, dateN: reqCntN }
   for (var entry in log) {
     var timestamp = log[entry]["timestamp"];
     var datetime = new Date(timestamp); // Thu Apr 09 2020 14:28:32 GMT+0100 (British Summer Time)
-    var year = datetime.getFullYear(); // 2020
+    var year = datetime.getFullYear().toString().substr(-2); // 21
     var month = datetime.getMonth() + 1; // 4 (note zero index: Jan = 0, Dec = 11)
     var day = datetime.getDate(); // 9
-    var date = month + "/" + day;
+    var date = month + "/" + day + "/" + year;
+    // create array (date) of all dates with requests
     if ( !dates.includes(date) ) {
       dates.push(date);
       tally[date] = 1;
+    } else {
+      tally[date]++;
     }
-    tally[date]++;
   }
+  // create array (count) of requests per day
+  // create object (tally) of request count each day
   for (var date in dates) {
     var key = dates[date];
     count.push(tally[key]);
@@ -582,16 +689,22 @@ function getCumulativeRequestData(log) {
 
 function loadDashboard(log) {
   var totalRequests = getTotalRequests(log);
-  var totalUsers = getTotalUsers(log);
+  var usersTotal = getTotalUsers(log);
+  var usersDay = getUniqueUsersDay(log).length;
+  var usersWeek = getUniqueUsersWeek(log).length;
+  var usersMonth = getUniqueUsersMonth(log).length;
+  var uniqueUsers = usersDay + " | " + usersWeek + " | " + usersMonth + " | " + usersTotal;
   var aveRequestsPerUser = getAveRequestsPerUser(log);
   var aveRequestsPerDay = getAveRequestsPerDay(log);
+  var dailyUniqueUsersData = getDailyUniqueUsersData(log);
+  var monthlyUniqueUsersData = getMonthlyUniqueUsersData(log);
   var dailyRequestData = getDailyRequestData(log);
   var cumulativeRequestData = getCumulativeRequestData(log);
   var topUsersTable = generateTopUsersTable(log);
   var topRequestsTable = generateTopRequestsTable(log);
   var newUsersTable = generateNewUsersTable(log, 7)
   var recentRequestsTable = generateRecentRequestsTable(log, 25)
-  document.getElementById("uniqueUsers").innerHTML = totalUsers;
+  document.getElementById("uniqueUsers").innerHTML = uniqueUsers;
   document.getElementById("totalRequests").innerHTML = totalRequests;
   document.getElementById("aveRequestsPerUser").innerHTML = aveRequestsPerUser;
   document.getElementById("aveRequestsPerDay").innerHTML = aveRequestsPerDay;
@@ -599,8 +712,202 @@ function loadDashboard(log) {
   document.getElementById("topRequestsTable").innerHTML = topRequestsTable;
   document.getElementById("newUsersTable").innerHTML = newUsersTable;
   document.getElementById("recentRequestsTable").innerHTML = recentRequestsTable;
+  loadDailyUniqueUsersChart(dailyUniqueUsersData);
+  loadMonthlyUniqueUsersChart(monthlyUniqueUsersData);
   loadDailyRequestChart(dailyRequestData);
   loadCumulativeRequestChart(cumulativeRequestData);
+}
+function loadDailyUniqueUsersChart(data) {
+  // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
+  // var count = [29, 9, 39, 19, 45, 23, 41, 46, 39, 8, 3, 28, 7, 18];
+  var dates = data[0];
+  var count = data[1];
+  var ctx = document.getElementById("dailyUniqueUsersChart");
+  var dailyUniqueUsersChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      // labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: dates,
+      datasets: [{
+        label: "Requests",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: [0, 10000, 5000, 15000, 10000, 20000, 15000, 25000, 20000, 30000, 25000, 40000],
+        data: count,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+            // Include a dollar sign in the ticks
+            callback: function(value, index, values) {
+              return value;
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function(tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel;
+          }
+        }
+      }
+    }
+  });
+}
+function loadMonthlyUniqueUsersChart(data) {
+  // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
+  // var count = [29, 9, 39, 19, 45, 23, 41, 46, 39, 8, 3, 28, 7, 18];
+  var dates = data[0];
+  var count = data[1];
+  var ctx = document.getElementById("monthlyUniqueUsersChart");
+  var monthlyUniqueUsersChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      // labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      labels: dates,
+      datasets: [{
+        label: "Requests",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: [0, 10000, 5000, 15000, 10000, 20000, 15000, 25000, 20000, 30000, 25000, 40000],
+        data: count,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+            // Include a dollar sign in the ticks
+            callback: function(value, index, values) {
+              return value;
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function(tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel;
+          }
+        }
+      }
+    }
+  });
 }
 function loadDailyRequestChart(data) {
   // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
@@ -794,6 +1101,8 @@ function loadCumulativeRequestChart(data) {
     }
   });
 }
+
+// unused functions
 function getReadableLog(log) {
   var readableLog = "";
   for (var entry in log) {
