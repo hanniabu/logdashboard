@@ -77,6 +77,7 @@ function processLog(log) {
   var cleanedLog = log
   cleanedLog = addUsernames(log);
   cleanedLog = settings['settingOmitUsers'] ? omitUsers(cleanedLog) : cleanedLog;
+  cleanedLog = settings['settingRemoveSingleUsers'] ? removeSingleUsers(cleanedLog) : cleanedLog;
   cleanedLog = settings['settingTrimRequests'] ? trimRequests(cleanedLog) : cleanedLog;
   return cleanedLog;
 }
@@ -100,6 +101,22 @@ function addUsernames(log) {
 function omitUsers(log) {
   var usersToRemove = ["hanniabu", "rudster", "svencillia", "jasonlexx"];
   var cleanedLog = [];
+  for (var entry in log) {
+    if (!usersToRemove.includes(log[entry]["username"])) {
+      cleanedLog.push(log[entry]);
+    } 
+  }
+  return cleanedLog;
+}
+function removeSingleUsers(log) {
+  var usersToRemove = [];
+  var totalRequestsPerUser = getTotalRequestsPerUser(log);
+  var cleanedLog = [];
+  for (var user in totalRequestsPerUser) {
+    if (totalRequestsPerUser[user]["totalRequests"] < 2) {
+      usersToRemove.push(totalRequestsPerUser[user]["username"]);
+    }
+  }
   for (var entry in log) {
     if (!usersToRemove.includes(log[entry]["username"])) {
       cleanedLog.push(log[entry]);
