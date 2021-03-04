@@ -192,7 +192,6 @@ function getUniqueUsersDay(log) {
       users.push(username);
     }
   }
-  console.log(users.length);
   return users;
   // output:
   // [ "usernameA", "usernameB", "usernameN" ]
@@ -207,7 +206,6 @@ function getUniqueUsersWeek(log) {
       users.push(username);
     }
   }
-  console.log(users.length);
   return users;
   // output:
   // [ "usernameA", "usernameB", "usernameN" ]
@@ -222,7 +220,6 @@ function getUniqueUsersMonth(log) {
       users.push(username);
     }
   }
-  console.log(users.length);
   return users;
   // output:
   // [ "usernameA", "usernameB", "usernameN" ]
