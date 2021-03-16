@@ -11213,3 +11213,11 @@ body.sidebar-toggled footer.sticky-footer {
   width: 100%;
 }
 
+#loadTime {
+  position: absolute;
+  top: 0;
+  right: 1.65em;
+  padding-top: 0.15em;
+  color: #bbb;
+  font-size: 0.9em;
+}

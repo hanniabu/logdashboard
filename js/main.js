@@ -817,6 +817,10 @@ function loadDashboard(log) {
   loadMonthlyUniqueUsersChart(monthlyUniqueUsersData);
   loadDailyRequestChart(dailyRequestData);
   loadCumulativeRequestChart(cumulativeRequestData);
+  var loadTime = (Date.now() - currentEpoch)/1000
+  var loadTimeText = "Load time: " + loadTime + "s"
+  console.log(loadTimeText);
+  document.getElementById("loadTime").innerHTML = loadTimeText;
 }
 function loadDailyUniqueUsersChart(data) {
   // var dates = ["10/23", "10/25", "10/27", "10/28", "10/30", "11/2", "11/3", "11/4", "11/5", "10/24", "10/26", "10/29", "10/31", "11/1"];
