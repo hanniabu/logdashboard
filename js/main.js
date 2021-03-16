@@ -241,7 +241,7 @@ function getTotalRequestsPerUser(log) {
   var users = getUniqueUsers(log);
   var requestsPerUser = [];
   for (var user in users) {
-    requestsPerUser.push({ "username": users[user], "totalRequests": getUserRequestCount(log, users[user]) });
+    requestsPerUser.push({ "username": users[user], "totalRequests": getUserRequestCount(log, users[user]), "days": getUserDaysSinceFirstRequest(log, users[user]) });
   }
   // sort user metrics by total requests
   requestsPerUser.sort(function(a, b) {
@@ -278,6 +278,18 @@ function getUserRequestCount(log, user) {
   return getUserRequests(log, user).length;
   // output:
   // int
+}
+function getUserDaysSinceFirstRequest(log, user) {
+  for (var entry in log) {
+    if ( log[entry]["username"] == user ) {
+      var firstRequest = log[entry]["timestamp"];
+      var daysSinceFirstRequest = Math.round((currentEpoch - firstRequest)/86400000);
+      return daysSinceFirstRequest;
+    }
+  }
+  return 0;
+  // output:
+  // num  
 }
 function getTotalRequestsPerUserSummary(log) {
   var requestsPerUserSummary = "";
@@ -502,13 +514,13 @@ function getNewUsers(log, days) {
 
 function generateTopUsersTable(log, num) {
   var num = (num === undefined) ? getTotalUsers(log) : num;
-  var labels = "<tr><th>Username</th><th>Requests</th></tr>";
+  var labels = "<tr><th>Username</th><th>Requests</th><th>Days</th></tr>";
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var topUsers = getMostActiveUsers(log, num);
   var tbody = "<tbody>";
   for (var user in topUsers) {
-    tbody += "<tr><td id='" + topUsers[user]["username"] + "'>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td></tr>";
+    tbody += "<tr><td id='" + topUsers[user]["username"] + "'>" + topUsers[user]["username"] + "</td><td>" + topUsers[user]["totalRequests"] + "</td><td>" + topUsers[user]["days"] + "</td></tr>";
   }
   tbody += "</tbody>";
   var table = thead + tfoot + tbody;
@@ -518,18 +530,21 @@ function generateTopUsersTable(log, num) {
     //   <tr>
     //     <th>Username</th>
     //     <th>Requests</th>
+    //     <th>Days</th>
     //   </tr>
     // </thead>
     // <tfoot>
     //   <tr>
     //     <th>Username</th>
     //     <th>Requests</th>
+    //     <th>Days</th>
     //   </tr>
     // </tfoot>
     // <tbody>
     //   <tr>
     //     <td>hanniabu</td>
     //     <td>6</td>
+    //     <td>194</td>
     //   </tr>
     // </tbody>
 }
