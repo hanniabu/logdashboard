@@ -345,6 +345,18 @@ function getRequestFrequency(log, request) {
   // output:
   // int
 }
+function getRequest7dFrequency(log, request) {
+  var requestFrequency = 0;
+  var cutoff = currentEpoch - (86400000*7);
+  for (var entry in log) {
+    if ( log[entry]["timestamp"] > cutoff && request.toLowerCase() == log[entry]["query"].toLowerCase() ) {
+      requestFrequency++;
+    }
+  }
+  return requestFrequency;
+  // output:
+  // int
+}
 function getRequestRank(log) {
   var requests = getUniqueRequests(log);
   var requestRank = [];
@@ -371,8 +383,53 @@ function getRequestRank(log) {
   //   ...
   // ]
 }
+function getRequest7dRank(log) {
+  var requests = getUniqueRequests(log);
+  var requestRank = [];
+  for (var request in requests) {
+    requestRank.push({ "request": requests[request], "frequency": getRequest7dFrequency(log, requests[request]) });
+  }
+  // sort requests by frequency
+  requestRank.sort(function(a, b) {
+    // var keyA = new Date(a.frequency);
+    // var keyB = new Date(b.frequency);
+    var keyA = Number(a.frequency);
+    var keyB = Number(b.frequency);
+    if (keyA < keyB) return 1;
+    if (keyA > keyB) return -1;
+    return 0;
+  });
+  return requestRank;
+  // output:
+  // [
+  //   {
+  //     request: "reqA",
+  //     frequency: int
+  //   },
+  //   ...
+  // ]
+}
 function getMostCommonRequests(log, num) {
   var requestRank = getRequestRank(log);
+  var totalRequests = requestRank.length;
+  var mostCommonRequests;
+  if (num < totalRequests) {
+    mostCommonRequests = requestRank.slice(0, num);
+  } else {
+    mostCommonRequests = requestRank;
+  }
+  return mostCommonRequests;
+  // output:
+  // [
+  //   {
+  //     request: "reqA",
+  //     frequency: int
+  //   },
+  //   ...
+  // ]
+}
+function getMostCommonRequests7d(log, num) {
+  var requestRank = getRequest7dRank(log);
   var totalRequests = requestRank.length;
   var mostCommonRequests;
   if (num < totalRequests) {
@@ -482,6 +539,46 @@ function generateTopRequestsTable(log, num) {
   var thead = "<thead>" + labels + "</thead>";
   var tfoot = "<tfoot>" + labels + "</tfoot>";
   var topRequests = getMostCommonRequests(log, num);
+  var totalRequests = getTotalRequests(log);
+  var tbody = "<tbody>";
+  for (var request in topRequests) {
+    var query = topRequests[request]["request"];
+    var count = topRequests[request]["frequency"];
+    var percent = Math.round((count/totalRequests)*10000)/100 + "%";
+    tbody += "<tr><td>" + query + "</td><td>" + count  + "</td><td>" + percent + "</td></tr>";
+  }
+  tbody += "</tbody>";
+  var table = thead + tfoot + tbody;
+  return table;
+  // output:
+    // <thead>
+    //   <tr>
+    //     <th>Request</th>
+    //     <th>Count</th>
+    //     <th>Percent</th>
+    //   </tr>
+    // </thead>
+    // <tfoot>
+    //   <tr>
+    //     <th>Request</th>
+    //     <th>Count</th>
+    //     <th>Percent</th>
+    //   </tr>
+    // </tfoot>
+    // <tbody>
+    //   <tr>
+    //     <td>hanniabu</td>
+    //     <td>6</td>
+    //     <td>0.06%</td>
+    //   </tr>
+    // </tbody>
+}
+function generateTopRequests7dTable(log, num) {
+  var num = (num === undefined) ? getUniqueRequests(log).length : num;
+  var labels = "<tr><th>Request</th><th>Count</th><th>Percent</th></tr>";
+  var thead = "<thead>" + labels + "</thead>";
+  var tfoot = "<tfoot>" + labels + "</tfoot>";
+  var topRequests = getMostCommonRequests7d(log, num);
   var totalRequests = getTotalRequests(log);
   var tbody = "<tbody>";
   for (var request in topRequests) {
@@ -704,6 +801,7 @@ function loadDashboard(log) {
   var cumulativeRequestData = getCumulativeRequestData(log);
   var topUsersTable = generateTopUsersTable(log);
   var topRequestsTable = generateTopRequestsTable(log);
+  var topRequests7dTable = generateTopRequests7dTable(log);
   var newUsersTable = generateNewUsersTable(log, 7)
   var recentRequestsTable = generateRecentRequestsTable(log, 25)
   document.getElementById("uniqueUsers").innerHTML = uniqueUsers;
@@ -712,6 +810,7 @@ function loadDashboard(log) {
   document.getElementById("aveRequestsPerDay").innerHTML = aveRequestsPerDay;
   document.getElementById("topUsersTable").innerHTML = topUsersTable;
   document.getElementById("topRequestsTable").innerHTML = topRequestsTable;
+  document.getElementById("topRequests7dTable").innerHTML = topRequests7dTable;
   document.getElementById("newUsersTable").innerHTML = newUsersTable;
   document.getElementById("recentRequestsTable").innerHTML = recentRequestsTable;
   loadDailyUniqueUsersChart(dailyUniqueUsersData);
